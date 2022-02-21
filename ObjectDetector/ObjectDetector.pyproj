@@ -21,6 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DetectObjects.py" />
     <Compile Include="ObjectDetector.py" />
   </ItemGroup>
   <ItemGroup>
