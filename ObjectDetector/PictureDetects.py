@@ -2,7 +2,8 @@ def pictureDetects():
     import cv2
     import numpy as np
     
-    img = cv2.imread('personAtDesk.png')
+    pic = input("Please type the name of the picture to look at: ")
+    img = cv2.imread(str(pic))
     
     #Threshold to detect objects
     thres = 0.45
