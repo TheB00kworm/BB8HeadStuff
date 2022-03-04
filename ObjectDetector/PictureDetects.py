@@ -1,30 +1,30 @@
-def pictureDetects():
+def pictureDetects(net, thres, nms_threshold, classNames):
     import cv2
     import numpy as np
     
     pic = input("Please type the name of the picture to look at: ")
     img = cv2.imread(str(pic))
     
-    #Threshold to detect objects
-    thres = 0.45
-    nms_threshold = 0.2
+    # #Threshold to detect objects
+    # thres = 0.45
+    # nms_threshold = 0.2
 
-    #Obtain data to identify objects
-    classNames = []
-    classFile = 'coco.names'
-    with open(classFile, 'rt') as f:
-        classNames = f.read().rstrip('\n').split('\n')
+    # #Obtain data to identify objects
+    # classNames = []
+    # classFile = 'coco.names'
+    # with open(classFile, 'rt') as f:
+    #     classNames = f.read().rstrip('\n').split('\n')
 
-    #Create detection model from network using Binary file for trained weights and text file for network configuration
-    configPath = 'ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
-    weightsPath = 'frozen_inference_graph.pb'
-    net = cv2.dnn_DetectionModel(weightsPath, configPath)
-    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
-    net.setInputSize(320,320)
-    net.setInputScale(1.0/ 127.5)
-    net.setInputMean((127.5, 127.5, 127.5))
-    net.setInputSwapRB(True)
+    # #Create detection model from network using Binary file for trained weights and text file for network configuration
+    # configPath = 'ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
+    # weightsPath = 'frozen_inference_graph.pb'
+    # net = cv2.dnn_DetectionModel(weightsPath, configPath)
+    # net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+    # net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+    # net.setInputSize(320,320)
+    # net.setInputScale(1.0/ 127.5)
+    # net.setInputMean((127.5, 127.5, 127.5))
+    # net.setInputSwapRB(True)
 
     try:
         while True:

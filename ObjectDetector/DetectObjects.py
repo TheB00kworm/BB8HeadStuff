@@ -1,37 +1,6 @@
-def detectObjects():
+def detectObjects(cap, net, thres, nms_threshold, classNames):
     import cv2
     import numpy as np
-
-    #Choose Video Camera to use
-    cap = cv2.VideoCapture(0)
-
-    #3 sets width of frames
-    #4 sets Height of frames
-    width = 1080
-    height = 620
-    cap.set(3,width)
-    cap.set(4,height)
-
-    #Threshold to detect objects
-    thres = 0.45
-    nms_threshold = 0.2
-
-    #Obtain data to identify objects
-    classNames = []
-    classFile = 'coco.names'
-    with open(classFile, 'rt') as f:
-        classNames = f.read().rstrip('\n').split('\n')
-
-    #Create detection model from network using Binary file for trained weights and text file for network configuration
-    configPath = 'ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
-    weightsPath = 'frozen_inference_graph.pb'
-    net = cv2.dnn_DetectionModel(weightsPath, configPath)
-    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
-    net.setInputSize(320,320)
-    net.setInputScale(1.0/ 127.5)
-    net.setInputMean((127.5, 127.5, 127.5))
-    net.setInputSwapRB(True)
 
     try:
         while True:
@@ -61,7 +30,7 @@ def detectObjects():
             #cv2.waitKey(1)
             # Hit 'q' on the keyboard to quit
             if cv2.waitKey(1) & 0xFF == ord('q'):
-                cap.release()
+                # cap.release()
                 cv2.destroyAllWindows()
                 break
 
