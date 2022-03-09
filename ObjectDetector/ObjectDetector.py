@@ -1,9 +1,14 @@
 import cv2
 import numpy as np
+import threading
 from DetectObjects import detectObjects
 from PictureDetects import pictureDetects
 from TrackObjects import trackObjects
 from FindFPS import findFPS
+
+# def readVideo(cap):
+#     while True:
+#         ret, img = cap.read()
 
 def main():
     #Obtain FPS of camera
@@ -24,7 +29,7 @@ def main():
     centerY = int(height/2)
 
     #Threshold to detect objects
-    thres = 0.45
+    thres = 0.40
     nms_threshold = 0.2
 
     #Obtain data to identify objects
@@ -44,16 +49,20 @@ def main():
     net.setInputMean((127.5, 127.5, 127.5))
     net.setInputSwapRB(True)
     
+    # t1 = threading.Thread(target=readVideo)
+    # t1.start()
+    
     while True:
+        
         action = input("\nPlease type one of the following, then press 'Enter':"
                        "\n'o' for Observation Mode"
                        "\n't' for Tracking Mode"
                        #"\n'p' for Picture stuff" 
-                       "\n'end' to quit \n")
+                       "\n'q' to quit \n")
                 
         if(action == "o"):
             print("Press Q to end Observation Mode")
-            detectObjects(cap, net, thres, nms_threshold, classNames)
+            detectObjects(cap, net, nms_threshold, classNames)
             continue
         elif(action == "t"):
             print("Press Q to end Tracking Mode")
@@ -62,12 +71,12 @@ def main():
         # elif(action == 'p'):
         #     pictureDetects(net, thres, nms_threshold, classNames)
         #     break
-        elif(action == "end"):
+        elif(action == "q"):
             cap.release()
             cv2.destroyAllWindows()
             break
         else:
-            print("Invalid Input")
+            print("\nInvalid Input")
 
         
 

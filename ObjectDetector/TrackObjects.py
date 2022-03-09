@@ -15,40 +15,51 @@ def trackObjects(cap, net, thres, nms_threshold, classNames, centerX, centerY):
 
             #Sets up cleaning up bboxes for less overlap (non-maximum suppression)
             idxs = cv2.dnn.NMSBoxes(bbox, confs, thres, nms_threshold)
-
+            curr = 320
+            
             #Creates a more stable box around objects and states what it is and how confidant it is
             for i in idxs:
-                box = bbox[i]
-                confidence = confs[i]
                 name = classNames[classIds[i]-1].upper()
-                x,y,w,h = box[0], box[1], box[2], box[3]
-                cv2.rectangle(img,(x,y), (x+w, y+h), color=(255,165,0), thickness=2)
-                cv2.putText(img,name,(box[0]+10,box[1]+30), cv2.FONT_HERSHEY_COMPLEX,0.75,(255,165,0),2)
-                cv2.putText(img,str(round(confidence*100,2)),(box[0]+10, box[1]+60), cv2.FONT_HERSHEY_COMPLEX,0.75,(255,165,0),2)
-
-                #Find center of bbox and place coordinates
-                x2 = x + int(w/2)
-                y2 = y + int(h/2)
-                cv2.circle(img,(x2,y2),2,(0,255,0),-1)
-                loc = "x: " + str(x2) + ", y: " + str(y2)
-                cv2.putText(img,loc,(x2 - 10, y2 - 10), cv2.FONT_HERSHEY_COMPLEX,0.5,(0,255,0),2)
-
-                #Puts dot on center of screen
-                cv2.circle(img,(centerX,centerY),4,(0,255,0),-1)
                 
-                #Find difference between center of screen and current position
-                relX = abs(x2 - centerX)
-                relY = abs(y2 - centerY)
-                
-                if(x2 >= centerX):
-                    cv2.circle(img,(x2-relX,y2-relY),4,(255,165,0),-1)
-                else:
-                    cv2.circle(img,(relX-x2,relY-y2),4,(255,165,0),-1)
+                #Checks to see if Object is a person before creating box around it
+                if(name == "PERSON"):
+                    box = bbox[i]
+                    confidence = confs[i]
+                    
+                    x,y,w,h = box[0], box[1], box[2], box[3]
+                    
+                    #Find center of bbox
+                    x2 = x + int(w/2)
+                    y2 = y + int(h/2)
+                    
+                    #Find difference between center of screen and current position
+                    relX = abs(x2 - centerX)
+                    relY = abs(y2 - centerY)
 
-                
-                #Shift motors 
+                    if(relX <= curr - 10):
+                        curr = relX
+                        cv2.rectangle(img,(x,y), (x+w, y+h), color=(255,165,0), thickness=2)
+                        cv2.putText(img,name,(box[0]+10,box[1]+30), cv2.FONT_HERSHEY_COMPLEX,0.75,(255,165,0),2)
+                        cv2.putText(img,str(round(confidence*100,2)),(box[0]+10, box[1]+60), cv2.FONT_HERSHEY_COMPLEX,0.75,(255,165,0),2)
 
+                        #Find center of bbox and place coordinates
+                        cv2.circle(img,(x2,y2),2,(0,255,0),-1)
+                        loc = "x: " + str(x2) + ", y: " + str(y2)
+                        cv2.putText(img,loc,(x2 - 10, y2 - 10), cv2.FONT_HERSHEY_COMPLEX,0.5,(0,255,0),2)
 
+                        #Puts dot on center of screen
+                        #cv2.circle(img,(centerX,centerY),4,(0,255,0),-1)
+                        
+                        #WIll Shift motors to center object
+                        #Currently Marks the center of Frame relative to Object
+                        if(x2 >= centerX & y2 >= centerY):
+                            cv2.circle(img,(x2-relX,y2-relY),4,(255,165,0),-1)
+                        elif(x2 > centerX & y2 < centerY):
+                            cv2.circle(img,(x2-relX,y2+relY),4,(255,165,0),-1)
+                        elif(x2 < centerX & y2 > centerY):
+                            cv2.circle(img,(x2+relX,y2-relY),4,(255,165,0),-1)
+                        else:
+                            cv2.circle(img,(x2+relX,y2+relY),4,(255,165,0),-1)
 
             #Show the Output Window
             cv2.imshow("Tracking", img)
