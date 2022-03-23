@@ -2,17 +2,16 @@ import cv2
 import numpy as np
 import threading
 from DetectObjects import detectObjects
-from PictureDetects import pictureDetects
+#from PictureDetects import pictureDetects
 from TrackObjects import trackObjects
-from FindFPS import findFPS
-
-# def readVideo(cap):
-#     while True:
-#         ret, img = cap.read()
 
 def main():
-    #Obtain FPS of camera
-    #findFPS()
+    #Initial BB-8 Head Location for servos 
+    zpan = 90
+    xtilt = 90
+    ytilt = 90
+    
+    #Tell servos to adjust as needed
     
     #Choose Video Camera to use
     cap = cv2.VideoCapture(1) #cv2.CAP_DSHOW gets rid of sync error on Windows
@@ -21,6 +20,8 @@ def main():
     #4 sets Height of frames
     width = 640
     height = 480
+    # width = 1260 
+    # height = 700
     cap.set(3,width)
     cap.set(4,height)
 
@@ -29,7 +30,6 @@ def main():
     centerY = int(height/2)
 
     #Threshold to detect objects
-    thres = 0.40
     nms_threshold = 0.2
 
     #Obtain data to identify objects
@@ -49,11 +49,10 @@ def main():
     net.setInputMean((127.5, 127.5, 127.5))
     net.setInputSwapRB(True)
     
-    # t1 = threading.Thread(target=readVideo)
+    # t1 = threading.Thread(target=readVideo, args=(1,), daemon=True)
     # t1.start()
     
     while True:
-        
         action = input("\nPlease type one of the following, then press 'Enter':"
                        "\n'o' for Observation Mode"
                        "\n't' for Tracking Mode"
@@ -66,7 +65,7 @@ def main():
             continue
         elif(action == "t"):
             print("Press Q to end Tracking Mode")
-            trackObjects(cap, net, thres, nms_threshold, classNames, centerX, centerY)
+            trackObjects(cap, net, nms_threshold, classNames, centerX, centerY, zpan, xtilt, ytilt)
             continue
         # elif(action == 'p'):
         #     pictureDetects(net, thres, nms_threshold, classNames)
@@ -78,7 +77,15 @@ def main():
         else:
             print("\nInvalid Input")
 
-        
+
+# def readVideo(cap):
+#     while True:
+#       ret, img = cap.read()
+#       cv2.imshow("Vision Output", img)
+#       if cv2.waitKey(1) & 0xFF == ord('q'):
+            #cap.release()
+            #cv2.destroyAllWindows()
+            #break        
 
 
 if __name__ == "__main__":
