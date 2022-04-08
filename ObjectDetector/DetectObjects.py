@@ -1,16 +1,24 @@
-def detectObjects(cap, net, nms_threshold, classNames):
-    import cv2
-    import numpy as np
+import cv2
+import numpy as np
+import keyboard
 
+global cap
+global img
+
+def detectObjects(net, nms_threshold, classNames):
+       
     try:
         thres = 0.50
         
         while True:
             #Sets up the camera to read the images
-            ret, img = cap.read()
+            #ret, img = cap.read()
+            #img = VideoGet(0).frame
+            
+            #print(threading.active_count())
             
             #Sets up IDs, confidences level and boundary box variables for finding items
-            classIds, confs, bbox = net.detect(img, confThreshold=thres)  
+            classIds, confs, bbox = net.detect( img, confThreshold=thres)  
             bbox = list(bbox)
             confs = list(np.array(confs).reshape(1,-1)[0])
             confs = list(map(float,confs))
@@ -26,15 +34,13 @@ def detectObjects(cap, net, nms_threshold, classNames):
                 cv2.rectangle(img,(x,y), (x+w, y+h), color=(255,165,0), thickness=2)
                 cv2.putText(img,classNames[classIds[i]-1].upper(),(box[0]+10,box[1]+30), cv2.FONT_HERSHEY_COMPLEX,0.75,(255,165,0),2)
                 cv2.putText(img,str(round(confidence*100,2)),(box[0]+10, box[1]+60), cv2.FONT_HERSHEY_COMPLEX,0.75,(255,165,0),2)
-
+                print(classNames[classIds[i]-1].upper())
             #Show the Output Window
-            cv2.imshow("Obseving", img)
+            #cv2.imshow("Obseving", img)
             #cv2.waitKey(1)
             # Hit 'q' on the keyboard to quit
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                # cap.release()
-                cv2.destroyAllWindows()
-                break
+            if keyboard.is_pressed('q'):
+                return
 
     except Exception as e: print(e)
 
