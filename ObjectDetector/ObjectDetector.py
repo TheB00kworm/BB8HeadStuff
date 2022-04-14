@@ -12,14 +12,17 @@ DetectObjects.cap = cv2.VideoCapture(0)
 visionState = 'I'
 
 def videoGetandShow():
-    while True:
-        ret, DetectObjects.img = DetectObjects.cap.read()
-        if ret:
-            cv2.imshow("Video", DetectObjects.img)
-        if cv2.waitKey(1) & threadIsActive == False:
-            DetectObjects.cap.release()
-            cv2.destroyAllWindows()
-            break
+    try:
+        while True:
+            ret, DetectObjects.img = DetectObjects.cap.read()
+            if ret:
+                cv2.imshow("Video", DetectObjects.img)
+            if cv2.waitKey(1) & threadIsActive == False:
+                break
+    except Exception as e: print(e)
+    finally:
+        DetectObjects.cap.release()
+        cv2.destroyAllWindows()
     
 
 def main():
@@ -56,8 +59,8 @@ def main():
     configPath = 'ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
     weightsPath = 'frozen_inference_graph.pb'
     net = cv2.dnn_DetectionModel(weightsPath, configPath)
-    #net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-    #net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
     net.setInputSize(320,320)
     net.setInputScale(1.0/ 127.5)
     net.setInputMean((127.5, 127.5, 127.5))
@@ -91,7 +94,7 @@ def main():
             break
         else:
             print("\nInvalid Input")  
-
+    threadVideoGetandShow.join()
     
 
 if __name__ == "__main__":
