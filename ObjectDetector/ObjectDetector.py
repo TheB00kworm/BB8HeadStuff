@@ -38,7 +38,6 @@ def videoGetandShow():
     # finally:
     #     cv2.destroyAllWindows()
 
-
 def main():
     global threadIsActive
     threadIsActive = False
@@ -235,8 +234,6 @@ def trackObjects(net, nms_threshold, classNames, centerX, centerY):
                 break
 
     except Exception as e: print(e)
-
-
 
 
 
