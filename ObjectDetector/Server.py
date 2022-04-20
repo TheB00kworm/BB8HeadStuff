@@ -1,39 +1,42 @@
 import socket
-import threading
 import time
-import sys
+import math
 
-def get_state(current_state,socket):
+# TO USE:
+
+# IMPORT socket
+
+# USE CREATE SERVER AND SAVE IT TO A SERVER VARIABLE (THIS WILL HOLD THE ACTIVE SOCKET)
+#Example : from Server import createServer, checkState
+# This will give you access to the createServer and checkState functions. createServer returns a socket, checkstate returns a string
+# PERIODICALLY RUN CHECKSTATE 
+def createServer(port):
+    sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+    sock.bind(('',port))
+    sock.setblocking(0)
+    return sock
+
+def checkState(current_state,socket):
     try:
-        if 'm' in socket.recv(1024,socket.MSG_PEEK):
-            print('gotteem')
-            sys.exit()
-            return socket.recv(1024)[1]
+        data = socket.recv(1024).decode()
+        if 'm' in data:
+            return data[1]
+    except KeyboardInterrupt:
+        socket.close()
     except:
         return current_state
 
-def create_server(port):
-    s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-    s.setblocking(0)
-    s.bind(('',port))
-    return s
-
 def main():
-
-    nano_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-    nano_socket.setblocking(0)
-    nano_port = 321
-    nano_socket.bind(('',nano_port))
-
-    print('Socket created and bound to Port {}',nano_port)
+    nano_socket = createServer(8008)
     visionState = 't'
+    diff = 0
     while True:
-        print(visionState)
         current_time = time.time()
-        get_state(visionState,nano_socket)
-        print(time.time() - current_time)
-        time.sleep(1)
+        visionState = checkState(visionState,nano_socket)
+        diff = max(time.time() - current_time,diff)
+        print('Vision State : {} Max Time taken : {}'.format(visionState,diff))
 
+    
 
 if __name__ == '__main__':
     main()
