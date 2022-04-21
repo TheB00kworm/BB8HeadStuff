@@ -20,7 +20,7 @@ def checkState(current_state,socket):
     try:
         data = socket.recv(1024).decode()
         if 'm' in data:
-            return data[1]
+            return data[1:]
     except KeyboardInterrupt:
         socket.close()
     except:

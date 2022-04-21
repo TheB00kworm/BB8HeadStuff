@@ -28,7 +28,7 @@ height = 480
 cap.set(3,width)
 cap.set(4,height)
 
-encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+# encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
 #Find the center of the window
 centerX = int(width/2)
@@ -36,6 +36,7 @@ centerY = int(height/2)
 
 #Threshold to detect objects
 nms_threshold = 0.2
+thres = 0.45
 
 #Obtain data to identify objects
 classNames = []
@@ -65,8 +66,8 @@ def videoGetandShow():
     global cap, img, visionState, endThreads, threadIsActive
 
     # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # port = 8008
-    # ipmyRIO ='192.168.1.124'
+    # port = 8009
+    # ipmyRIO ='172.16.0.1'
     # client_socket.connect((ipmyRIO, port))
 
     try:
@@ -76,23 +77,26 @@ def videoGetandShow():
                 var = 0
                 ret,img = cap.read()
                 # result, img = cv2.imencode('.jpg', img, encode_param)
-                # data = pickle.dumps(img, 0)
-                # size = len(data)
-                # client_socket.sendall(struct.pack(">L", size) + data)
-                cv2.imshow("Video", img)
-                if visionState == 't' and cv2.waitKey(1) & 0xFF == ord('e'):
-                    visionState = 'v'
+                # buff = result.encode('utf-8')
+                # # data = pickle.dumps(img, 0)
+                # # size = len(data)
+                # client_socket.sendall(buff)
+
+                # cv2.imshow("Video", img)
+                print(f'Vision State: {visionState}:  Showing Video')
+                # if visionState == 't' and cv2.waitKey(1) & 0xFF == ord('e'):
+                #     visionState = 'v'
             else:
                 if visionState == 'o' and var == 0:
-                    cv2.destroyWindow('Video')
+                    # cv2.destroyWindow('Video')
                     var = 1
-                continue
-            if cv2.waitKey(1) & 0xFF == ord('q') or endThreads:
+                pass
+            if endThreads:
                 break
                     
     except Exception as e: print(e)
     finally:
-        cv2.destroyAllWindows()
+        print('Video Thread Finished!')
 
 
 ####################################################################################################
@@ -115,54 +119,48 @@ def main():
     threadTrackObjects.start()
 
     try:
-        # host = ''
-        # port = 8008
-        # sc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # sc.bind((host, port))
-        # sc.listen(10)
-
         print(f'Active Threads: {threading.active_count()}')
         visionState = 'v'
         while True:
-            if visionState == 'v':
-                #visionState = checkState(visionState, nano_socket)
-                action = input("\nPlease type one of the following, then press 'Enter':"
-                            "\n'o' for Observation Mode"
-                            "\n't' for Tracking Mode"
-                            #"\n'p' for Picture stuff"
-                            "\n'q' to quit \n")
+            visionState = checkState(visionState, nano_socket)
+            
+            # print(visionState)
+            # if visionState == 'v':
+            #     action = input("\nPlease type one of the following, then press 'Enter':"
+            #                 "\n'o' for Observation Mode"
+            #                 "\n't' for Tracking Mode"
+            #                 #"\n'p' for Picture stuff"
+            #                 "\n'q' to quit \n")
 
-                if(action == "o"):
-                    threadIsActive = False
-                    print("Press E to end Observation Mode")
-                    visionState = 'o'
-                    #detectObjects(net, nms_threshold, classNames)
-                elif(action == "t"):
-                    print("Press E to end Tracking Mode")
-                    visionState = 't'
-                    #trackObjects(net, nms_threshold, classNames, centerX, centerY)
-                # elif(action == 'p'):
-                #     pictureDetects(net, thres, nms_threshold, classNames)
-                #     break
-                elif(action == "q"):
-                    threadIsActive = False
-                    endThreads = True
-                    cap.release()
-                    cv2.destroyAllWindows()
-                    break
-                else:
-                    print("\nInvalid Input")
+            #     if(action == "o"):
+            #         threadIsActive = False
+            #         print("Press E to end Observation Mode")
+            #         visionState = 'o'
+            #         #detectObjects(net, nms_threshold, classNames)
+            #     elif(action == "t"):
+            #         print("Press E to end Tracking Mode")
+            #         visionState = 't'
+            #         #trackObjects(net, nms_threshold, classNames, centerX, centerY)
+            #     # elif(action == 'p'):
+            #     #     pictureDetects(net, thres, nms_threshold, classNames)
+            #     #     break
+            if visionState == "q":
+                threadIsActive = False
+                endThreads = True
+                # visionState = 'v'
+                cap.release()
+                cv2.destroyAllWindows()
+                break
             else:
-                # print(f'Vision State: {visionState}')
-                continue
+                pass
     except Exception as e: print(e)
     finally:
-        if threadVideoGetandShow.is_alive():
-            threadVideoGetandShow.join()
         if threadDetectObjects.is_alive():
             threadDetectObjects.join()
         if threadTrackObjects.is_alive():
             threadTrackObjects.join()
+        if threadVideoGetandShow.is_alive():
+            threadVideoGetandShow.join()
         print(f'Active Threads: {threading.active_count()}')
 
 
@@ -171,13 +169,11 @@ def main():
 ######################################### DETECTING OBJECTS ########################################
 ######################################### visionState == 'o' #######################################
 def detectObjects():
-    global img, cap, net, classNames, nms_threshold
+    global img, cap, net, classNames, nms_threshold, thres
     global threadIsActive, endThreads
     global visionState
 
     try:
-        thres = 0.50
-
         # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # port = 8008
         # ipmyRIO ='192.168.1.124'
@@ -187,6 +183,7 @@ def detectObjects():
             if endThreads:
                 break
             if visionState == 'o':
+                threadIsActive = False
                 #Sets up the camera to read the images
                 ret, img = cap.read()
                 #Sets up IDs, confidences level and boundary box variables for finding items
@@ -213,28 +210,28 @@ def detectObjects():
                 # client_socket.sendall(struct.pack(">L", size) + data)
 
                 # Show the Output Window
-                cv2.imshow("Video", img)
+                #cv2.imshow("Video", img)
+                print(f'Vision State: {visionState}:  Observation Found')
                 #cv2.waitKey(1)
             else:
-                continue
+                pass
             # Hit 'q' on the keyboard to quit
-            if (cv2.waitKey(1) & 0xFF == ord('e')):
-                cv2.destroyWindow('Video')
-                visionState = 'v'
+            if visionState != 'o' and not threadIsActive:
+                # cv2.destroyWindow('Video')
+                # visionState = 'v'
                 threadIsActive = True
             
 
     except Exception as e: print(e)
     finally:
-        visionState = 'v'
-        threadIsActive = True
+        print('Observation Thread Finished!')
 
 
 ####################################################################################################
 #################################### TRACKING CENTERMOST PERSON ####################################
 ######################################## visionState == 't' ########################################
 def trackObjects():
-    global img, net, nms_threshold, classNames, centerX, centerY
+    global img, net, nms_threshold, thres, classNames, centerX, centerY
     global endThreads
     global visionState
 
@@ -247,7 +244,7 @@ def trackObjects():
     try:
         # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # s.connect(addressPort)
-        thres = 0.40
+
         curr = centerX
 
         while True:
@@ -301,7 +298,7 @@ def trackObjects():
                 #sending_string = str(relY)
                 # s.sendall(bytes(sending_string, 'utf-8'))
             else:
-                continue
+                pass
             # Hit 'e' on the keyboard to quit
             # if cv2.waitKey(1) or 0xFF == ord('e') or visionState != 't':
             #     visionState = 'v'
@@ -309,8 +306,7 @@ def trackObjects():
 
     except Exception as e: print(e)
     finally:
-        visionState = 'v'
-
+        print('Tracking Thread Finished!')
 
 
 
